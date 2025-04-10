@@ -6,13 +6,13 @@
 #include <libxml2/libxml/xmlstring.h>
 
 typedef struct gameData{
-		xmlChar* title;
-		xmlChar* version;
-		float volume;
-		xmlChar* author;
+	xmlChar* title;
+	xmlChar* version;
+	xmlChar* author;
+	xmlChar* icon;
+	float volume;
 }gameData;
 
 gameData* initData(char* filename);
-
 
 #endif

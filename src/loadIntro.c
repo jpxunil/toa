@@ -4,18 +4,6 @@
 
 bool loadIntro(){
 
-		bool complete = false;
-
-		while(!complete){
-
-				BeginDrawing();
-				ClearBackground(RED);
-				EndDrawing();
-
-		}
-
-
-
 		return true;
 }
 

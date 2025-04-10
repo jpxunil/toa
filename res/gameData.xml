@@ -2,6 +2,9 @@
 
 		<title>Aeloria</title>
 		<version>0.0.1</version>
-		<volume>0.35</volume>
+		<volume>0.25</volume>
 		<font>font.ttf</font>
+		<resx>1280</resx>
+		<resy>720</resy>
+		<icon>icon.png</icon>
 </game_data>

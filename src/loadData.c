@@ -5,41 +5,50 @@
 
 gameData* initData(char* filename){
 
-		gameData* data = malloc(sizeof(gameData));
-		
-		xmlDoc* file = NULL;
-		xmlKeepBlanksDefault(0);
+	/*
+	   xmlChar* title;
+	   xmlChar* version;
+	   xmlChar* icon;
+	   xmlChar* author;
+	   */
 
-		if (! (file = xmlReadFile(filename, NULL, 0)) ){
-				fprintf(stderr, "[ERROR] Failed to read game data");
+	gameData* data = malloc(sizeof(gameData));
+
+	xmlDoc* file = NULL;
+	xmlKeepBlanksDefault(0);
+
+	if (! (file = xmlReadFile(filename, NULL, 0)) ){
+		fprintf(stderr, "[ERROR] Failed to read game data");
+	}
+
+
+	xmlNode* root = xmlDocGetRootElement(file);
+
+	xmlNode* node = root->children;
+
+	while(node != NULL){
+
+		if(! xmlStrcmp(node->name, (xmlChar*)"title" ) ){
+			data->title = xmlNodeGetContent(node);
+			fprintf(stdout, "setting game title: %s", (char*)data->title);
+		}else if(! xmlStrcmp(node->name, (xmlChar*)"version")) {
+			data->version = xmlNodeGetContent(node);
+
+		}else if(! xmlStrcmp(node->name, (xmlChar*)"volume")){
+			data->volume = atof((char*)xmlNodeGetContent(node));
+		}else if(! xmlStrcmp(node->name, (xmlChar*)"icon")){
+			data->icon = xmlNodeGetContent(node);
 		}
 
 
-		xmlNode* root = xmlDocGetRootElement(file);
+		node = node->next;
+	}
 
-		xmlNode* node = root->children;
+	xmlFreeDoc(file);
 
-		while(node != NULL){
+	fprintf(stdout, "[DONE] gamedata loaded");
 
-				if(! xmlStrcmp(node->name, (xmlChar*)"title" ) ){
-						data->title = xmlNodeGetContent(node);
-						fprintf(stdout, "setting game title: %s", (char*)data->title);
-				}else if(! xmlStrcmp(node->name, (xmlChar*)"version")) {
-						data->version = xmlNodeGetContent(node);
-						
-				}else if(! xmlStrcmp(node->name, (xmlChar*)"volume")){
-						data->volume = atof((char*)xmlNodeGetContent(node));
-				}
-
-
-				node = node->next;
-		}
-
-		xmlFreeDoc(file);
-
-		fprintf(stdout, "[DONE] gamedata loaded");
-
-		return data;
+	return data;
 
 }
 

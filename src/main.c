@@ -7,9 +7,6 @@
 #include "defines.h"
 #include "xmlParser.h"
 #include "timer.h"
-
-
-
 #include <fluidsynth.h>
 
 
@@ -17,144 +14,176 @@
 
 fluid_player_t* player = NULL;
 
-
 int main(){
 
-		enum gameState {INTRO, LOAD, MENU};
+	freopen("/dev/null","w",stderr);
+	
+	//typedef enum gameState {LOGO, TITLE, GAMEPLAY, ENDING} gameState;
 
-		// Initialization
+	stringArray menu;
+	stringArray options;
 
-		gameData* data = initData("./res/gameData.xml");
+	initStringArray(&menu, 0, MENUOPTS);
+	initStringArray(&options, 0, OPTIONS);
 
-		const char* title = TextFormat("%s %s", data->title, data->version);
+	puts(options.strings[0]);
 
-		InitWindow(WIDTH, HEIGHT, title);
+	// Initialization
 
-		SetTargetFPS(60);
+	gameData* data = initData("./res/gameData.xml");
 
-		char* menuItems[3] = {"New Game", "Continue", "Options"};
+	const char* title = TextFormat("%s %s", data->title, data->version);
 
+	Image icon = LoadImage(TextFormat("%s%s", (char*)"./res/", (char*)data->icon));
 
-		// LOAD -> RESIZE -> CONVERT
-		Image rawBG = LoadImage("./res/media/bg.png");
-		ImageResizeNN(&rawBG, 1280, 720);
-		Texture2D menuBG = LoadTextureFromImage(rawBG);
+	InitWindow(WIDTH, HEIGHT, title);
 
+	SetWindowIcon(icon);
 
-		/*
-		InitAudioDevice();
-		Music menu_bgm = LoadMusicStream("./res/audio/tears.ogg");
-		SetAudioStreamBufferSizeDefault(4096);
-		SetMasterVolume(0.1);
+	SetTargetFPS(60);
 
-		Sound menu = LoadSound("res/sfx/menu_select.wav");
-		Sound confirm = LoadSound("res/sfx/confirm.wav");
+	// LOAD -> RESIZE -> CONVERT
+	Image rawBG = LoadImage("./res/media/bg.png");
+	ImageResizeNN(&rawBG, 1280, 720);
+	Texture2D menuBG = LoadTextureFromImage(rawBG);
 
-		PlayMusicStream(menu_bgm);
+	// Audio Backend Initialization
+	//
 
-		*/
+	fluidDriver* bgm_driver = initFluidDriver();
+	fluidDriver* sfx_driver = initFluidDriver();
+	
 
-		// Audio Backend Initialization
-		//
+	int sid = fluid_synth_sfload(bgm_driver->synth, "./res/soundfont/A320U.sf2", 1);
+	int sfx_sid = fluid_synth_sfload(sfx_driver->synth, "./res/soundfont/A320U.sf2", 1);
 
-		fluid_settings_t* settings = new_fluid_settings();
-		fluid_settings_setnum(settings, "synth.sample-rate", 44100);
-		fluid_settings_setint(settings, "audio.period-size", 512);
-		fluid_settings_setstr(settings, "audio.driver", "pipewire");
+	if(sid == FLUID_FAILED) {
+		fprintf(stderr, "Erro ao carregar soundfont\n");
+	}
 
-		fluid_synth_t* synth = new_fluid_synth(settings);
-		fluid_audio_driver_t* audio = new_fluid_audio_driver(settings, synth);
+	int menu_option = 0;
+	float volume = 0.0f;
 
-		player = new_fluid_player(synth);
+	Font font = LoadFont("./res/Arial.ttf");
+	SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
 
-		if(fluid_synth_sfload(synth, "./res/soundfont/A320U.sf2", 1) == 0) {
-			fprintf(stderr, "Erro ao carregar soundfont\n");
+	bool quit = false;
+	bool audio_fadein = false;
+	int bg_alpha = 0;
+
+	stringArray* active_menu = &menu;
+
+	player = new_fluid_player(bgm_driver->synth);
+	fluid_player_add(player, "./res/audio/bgm.mid");
+	fluid_player_play(player);
+
+	fluid_synth_set_gain(sfx_driver->synth, 3.0f);
+
+	while(! ( WindowShouldClose() || quit )){
+
+		bg_alpha < 125? bg_alpha++:125;
+
+		// Logic
+
+		switch(GetKeyPressed()){
+			case KEY_Q:
+				quit = true;
+				break;
+			case KEY_ENTER:
+				fluid_synth_program_select(sfx_driver->synth, 0, sfx_sid, 5, 124);
+				fluid_synth_noteon(sfx_driver->synth, 0, 15, 90);
+				fluid_synth_noteoff(sfx_driver->synth, 0, 15);
+
+				if(menu_option == 2 && active_menu == &menu){ 
+					active_menu = &options; menu_option = 0;
+				}else if(menu_option == 1 && active_menu == &options){ active_menu = &menu; menu_option = 0;}
+
+				break;
+
+			case KEY_ZERO:
+				volume <1.0f?volume+=0.1f:1.0f;
+				break;
+			case KEY_NINE:
+				volume > 0.0f?volume-=0.1f:0.0f; 
+				break;
 		}
 
-		fluid_player_add(player, "./res/audio/bgm.mid");
-		//fluid_player_seek(player, 3500);
-		fluid_player_play(player);
+		if(volume < 0.0f){ volume = 0.0f; } else if(volume > 1.0f){ volume = 1.0f;}
 
-		int menu_option = 0;
-		float volume = 0.0f;
+		// Fade in Intro
 
-		Font font = LoadFont("./res/font.ttf");
+		if(! audio_fadein ){
+			if (volume < data->volume ){ volume += 0.1f * GetFrameTime(); }
+			else if(volume >= data->volume){ volume = data->volume; audio_fadein = true; }
+		}
+		
+		fluid_synth_set_gain(bgm_driver->synth,volume);
 
-		bool quit = false;
+		if(IsKeyPressed(KEY_DOWN)){
+			menu_option++;
+			if(menu_option >= active_menu->count){ menu_option = 0; }
 
-		bool audio_fadein = false;
-
-		while(! ( WindowShouldClose() || quit )){
-
-				// Logic
-
-				switch(GetKeyPressed()){
-						case KEY_Q:
-								quit = true;
-								break;
-						case KEY_ENTER:
-								//PlaySound(confirm);
-								break;
-				}
-
-				// Fade in Intro
-				
-				if(! audio_fadein ){
-					if (volume < data->volume ){ volume += 0.05f * GetFrameTime(); }
-					else if(volume >= data->volume){ volume = data->volume; audio_fadein = true; }
-				}
-				SetMasterVolume(volume);
-
-				//UpdateMusicStream(menu_bgm);
-
-				if(IsKeyPressed(KEY_DOWN)){
-						menu_option++;
-						if(menu_option > 2){ menu_option = 0; }
-
-				}else if(IsKeyPressed(KEY_UP)){
-						menu_option--;
-						if(menu_option < 0){ menu_option = 2; }
-				}
-
-				if(IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_UP)){
-						//PlaySound(menu);
-				}
-
-				// Drawing
-
-				BeginDrawing();
-				ClearBackground(BLACK);
-				
-
-				DrawTexture(menuBG, 0, 0, (Color){255, 255, 255, 125});
-
-				DrawTextEx(font, TextFormat("Volume: %.2f", volume), (Vector2){0 + PADX, 0 + PADY}, 12.0f, 1.0f, WHITE);
-
-				for(int i = 0; i < 3; i++){
-						DrawTextEx(font, TextFormat("%c. %s", 'a' + i, menuItems[i]), (Vector2){50, 50 + ( 26 * i ) }, 12.0f, 1.0f, (Color){255, 255, menu_option == i?50:255, 255});
-						DrawRectangleGradientH(50 - 8, (50 - 6 + (26 * menu_option) ), 12 * 8, 24, (Color){255, 255, 255, 25}, (Color){255, 255, 255, 5});
-				}
-
-				EndDrawing();
-
+		}else if(IsKeyPressed(KEY_UP)){
+			menu_option--;
+			if(menu_option < 0){ menu_option = active_menu->count - 1 ; }
 		}
 
-		delete_fluid_audio_driver(audio);
-		delete_fluid_player(player);
-		delete_fluid_synth(synth);
-		delete_fluid_settings(settings);
+		if(IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_UP)){
+			fluid_synth_program_select(sfx_driver->synth, 0, sfx_sid, 1, 121);
+			fluid_synth_noteon(sfx_driver->synth, 0, 15, 80);
+		}
 
-		UnloadFont(font);
-		CloseAudioDevice();
-		
-		//UnloadSound(confirm);
-		//UnloadSound(menu);
-		UnloadTexture(menuBG);
-		
-		CloseWindow();
-		
-		free(data);
+		// Drawing
 
-		return 0;
+		BeginDrawing();
+		ClearBackground(BLACK);
+
+
+		DrawTexture(menuBG, 0, 0, (Color){255, 255, 255, bg_alpha});
+
+		DrawTextEx(font, TextFormat("Volume: %.2f", volume), (Vector2){0 + PADX, 0 + PADY}, 14.0f, 1.0f, WHITE);
+
+		for(int i = 0; i < active_menu->count; i++){
+			DrawTextEx(font, TextFormat("%c. %s", 'a' + i, 
+						active_menu->strings[i]), 
+					(Vector2){50, 50 + ( 26 * i ) }, 14.0f, 1.0f, 
+					(Color){255, 255, menu_option == i?50:255, 255});
+
+			DrawRectangleGradientH(50 - 8, 
+					(50 - 6 + (26 * menu_option) ), 
+					12 * 8, 24, 
+					(Color){255, 255, 255, 25}, 
+					(Color){255, 255, 255, 5});
+		}
+
+		EndDrawing();
+
+	}
+
+	freeStringArray(&menu);
+	freeStringArray(&options);
+
+	unloadDriver(bgm_driver);
+	unloadDriver(sfx_driver);
+
+	/*
+	delete_fluid_audio_driver(audio);
+	delete_fluid_audio_driver(sfx_audio);
+	delete_fluid_synth(synth);
+	delete_fluid_synth(sfx_synth);
+	delete_fluid_settings(settings);
+	delete_fluid_player(player);
+	*/
+
+	UnloadFont(font);
+
+	UnloadTexture(menuBG);
+	UnloadImage(icon);
+
+	CloseWindow();
+
+	free(data);
+
+	return 0;
 
 }
