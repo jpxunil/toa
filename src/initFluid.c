@@ -5,7 +5,7 @@
 #include <fluidsynth.h>
 
 
-fluidDriver* initFluidDriver(){
+fluidDriver* initFluidDriver(char* audiodriver){
 
 	fluidDriver* driver = malloc(sizeof(fluidDriver));
 
@@ -13,7 +13,7 @@ fluidDriver* initFluidDriver(){
 
 	fluid_settings_setnum(driver->settings, "synth.sample-rate", 44100);
 	fluid_settings_setint(driver->settings, "audio.period-size", 512);
-	fluid_settings_setstr(driver->settings, "audio.driver", "pipewire");
+	fluid_settings_setstr(driver->settings, "audio.driver", audiodriver);
 
 	driver->synth = new_fluid_synth(driver->settings);
 

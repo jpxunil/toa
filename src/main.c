@@ -50,8 +50,8 @@ int main(){
 	// Audio Backend Initialization
 	//
 
-	fluidDriver* bgm_driver = initFluidDriver();
-	fluidDriver* sfx_driver = initFluidDriver();
+	fluidDriver* bgm_driver = initFluidDriver(data->audiodriver);
+	fluidDriver* sfx_driver = initFluidDriver(data->audiodriver);
 	
 
 	int sid = fluid_synth_sfload(bgm_driver->synth, "./res/soundfont/A320U.sf2", 1);

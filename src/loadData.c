@@ -5,6 +5,8 @@
 
 gameData* initData(char* filename){
 
+	/*Tarefa : adicionar leitura de audio driver */
+
 	/*
 	   xmlChar* title;
 	   xmlChar* version;
@@ -47,6 +49,9 @@ gameData* initData(char* filename){
 	xmlFreeDoc(file);
 
 	fprintf(stdout, "[DONE] gamedata loaded");
+
+
+	data->audiodriver = (char*)"pulseaudio";
 
 	return data;
 

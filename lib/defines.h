@@ -19,7 +19,7 @@ typedef struct fluidDriver{
 	fluid_audio_driver_t* audio_driver;
 }fluidDriver;
 
-fluidDriver* initFluidDriver();
+fluidDriver* initFluidDriver(char* audiodriver);
 void unloadDriver(fluidDriver* driver);
 
 

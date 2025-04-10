@@ -10,6 +10,7 @@ typedef struct gameData{
 	xmlChar* version;
 	xmlChar* author;
 	xmlChar* icon;
+	char* audiodriver;
 	float volume;
 }gameData;
 
