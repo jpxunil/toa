@@ -1,7 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include "xmlParser.h"
-
+#include "defines.h"
 
 gameData* initData(char* filename){
 

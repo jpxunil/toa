@@ -1,7 +1,4 @@
-#include "timer.h"
-#include <stddef.h>
-#include <stdbool.h>
-#include <raylib.h>
+#include "defines.h"
 
 void startTimer(Timer* timer, float lifetime){
 		if( timer != NULL){ 

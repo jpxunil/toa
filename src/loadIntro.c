@@ -1,6 +1,4 @@
-#include <raylib.h>
-#include <stdbool.h>
-
+#include "defines.h"
 
 bool loadIntro(){
 

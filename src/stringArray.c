@@ -1,7 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "defines.h"
 
 void initStringArray(stringArray* array, int capacity, char** test){

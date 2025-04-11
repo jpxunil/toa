@@ -1,17 +1,10 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include <raylib.h>
 
 #include "defines.h"
-#include "xmlParser.h"
-#include "timer.h"
-#include <fluidsynth.h>
-
 
 // global variables
 
+fluidDriver* bgm_driver = NULL;
+fluidDriver* sfx_driver = NULL;
 fluid_player_t* player = NULL;
 
 int main(){
@@ -50,8 +43,8 @@ int main(){
 	// Audio Backend Initialization
 	//
 
-	fluidDriver* bgm_driver = initFluidDriver(data->audiodriver);
-	fluidDriver* sfx_driver = initFluidDriver(data->audiodriver);
+	bgm_driver = initFluidDriver(data->audiodriver);
+	sfx_driver = initFluidDriver(data->audiodriver);
 	
 
 	int sid = fluid_synth_sfload(bgm_driver->synth, "./res/soundfont/A320U.sf2", 1);
@@ -86,9 +79,6 @@ int main(){
 		// Logic
 
 		switch(GetKeyPressed()){
-			case KEY_Q:
-				quit = true;
-				break;
 			case KEY_ENTER:
 				fluid_synth_program_select(sfx_driver->synth, 0, sfx_sid, 5, 124);
 				fluid_synth_noteon(sfx_driver->synth, 0, 15, 90);
@@ -165,15 +155,6 @@ int main(){
 
 	unloadDriver(bgm_driver);
 	unloadDriver(sfx_driver);
-
-	/*
-	delete_fluid_audio_driver(audio);
-	delete_fluid_audio_driver(sfx_audio);
-	delete_fluid_synth(synth);
-	delete_fluid_synth(sfx_synth);
-	delete_fluid_settings(settings);
-	delete_fluid_player(player);
-	*/
 
 	UnloadFont(font);
 

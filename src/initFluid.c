@@ -1,9 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "defines.h"
-#include <fluidsynth.h>
-
 
 fluidDriver* initFluidDriver(char* audiodriver){
 
@@ -23,6 +18,17 @@ fluidDriver* initFluidDriver(char* audiodriver){
 
 	return driver;
 
+}
+
+void playNote(fluidDriver* driver, int ins, int sid){
+	switch(ins){
+		case 0:
+			fluid_synth_program_select(driver->synth, BELL[0], sid, BELL[1], BELL[2]);
+			fluid_synth_noteon(driver->synth, 0, 15, 90);
+			fluid_synth_noteoff(driver->synth, 0, 15);
+			break;
+
+	}
 }
 
 void unloadDriver(fluidDriver* driver){
